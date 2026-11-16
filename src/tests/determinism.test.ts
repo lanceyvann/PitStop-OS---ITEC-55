@@ -1,9 +1,3 @@
-/**
- * @file determinism.test.ts
- * @description Simulation Determinism and Time Machine Rewind/Replay Unit Tests.
- * Asserts that identical seeds produce 100% identical event logs and Time Machine rewind works.
- */
-
 import { describe, it, expect } from 'vitest';
 import { Kernel } from '../kernel/kernel';
 import { createBenchmarkWorkload } from '../config/workloads';
@@ -31,7 +25,6 @@ describe('Simulation Determinism & Time Machine Rewind', () => {
     expect(metricsA).toEqual(metricsB);
     expect(kernelA.logger.getEntries().length).toBe(kernelB.logger.getEntries().length);
 
-    // Verify messages match
     const logsA = kernelA.logger.getEntries();
     const logsB = kernelB.logger.getEntries();
     for (let i = 0; i < logsA.length; i++) {
@@ -45,16 +38,13 @@ describe('Simulation Determinism & Time Machine Rewind', () => {
     const workload = createBenchmarkWorkload('cpu-heavy', 777);
     workload.slice(0, 5).forEach((p) => kernel.submitOrder(p));
 
-    // Run 15 ticks
     for (let i = 0; i < 15; i++) {
       kernel.step();
     }
 
-    // Capture state at T=8
     const snapAt8 = kernel.snapshots[8];
     expect(snapAt8).toBeDefined();
 
-    // Rewind to T=8
     const success = kernel.rewindToTick(8);
     expect(success).toBe(true);
     expect(kernel.clock).toBe(8);
@@ -65,23 +55,19 @@ describe('Simulation Determinism & Time Machine Rewind', () => {
   it('Time Machine rewind preserves scheduled future arrivals upon replaying forward', () => {
     const kernel = new Kernel(4321);
     const workload = createBenchmarkWorkload('balanced', 4321);
-    // Submit 5 orders with staggered arrival times
     workload.slice(0, 5).forEach((p, idx) => {
-      p.arrivalTime = idx * 3; // arrivals at 0, 3, 6, 9, 12
+      p.arrivalTime = idx * 3; 
       kernel.submitOrder(p);
     });
 
-    // Run 15 ticks
     for (let i = 0; i < 15; i++) {
       kernel.step();
     }
     const stateAt15 = JSON.parse(JSON.stringify(kernel.calculateMetrics()));
 
-    // Rewind to T=5 (when arrivals at 6, 9, 12 had already been consumed in the first run)
     kernel.rewindToTick(5);
     expect(kernel.clock).toBe(5);
 
-    // Replay forward from T=5 to T=15
     for (let i = 5; i < 15; i++) {
       kernel.step();
     }
