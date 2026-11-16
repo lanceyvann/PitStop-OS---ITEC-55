@@ -1,9 +1,3 @@
-/**
- * @file ResourcesPanel.tsx
- * @description Shared Equipment Locks, Deadlock Detection Wait-For Graph,
- * and Shared (Stock) vs Private (Registers/Stacks) resource inspector.
- */
-
 import React, { useState } from 'react';
 import { Lock, LockId } from '../../models/lock';
 import { TireStockItem } from '../../models/tireStockItem';
