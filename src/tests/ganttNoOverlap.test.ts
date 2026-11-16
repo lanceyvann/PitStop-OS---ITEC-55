@@ -1,9 +1,3 @@
-/**
- * @file ganttNoOverlap.test.ts
- * @description Gantt Chart Non-Overlap Invariant Unit Test.
- * Asserts that no two bars in the same process row overlap, and CPU summary row is strictly sequential.
- */
-
 import { describe, it, expect } from 'vitest';
 import { Kernel } from '../kernel/kernel';
 import { createBenchmarkWorkload } from '../config/workloads';
@@ -18,7 +12,6 @@ describe('Gantt Chart Non-Overlap Invariant', () => {
     const orders = createBenchmarkWorkload('balanced', 888);
     orders.slice(0, 10).forEach((o) => kernel.submitOrder(o));
 
-    // Run 50 ticks
     for (let i = 0; i < 50; i++) {
       kernel.step();
     }
@@ -26,7 +19,6 @@ describe('Gantt Chart Non-Overlap Invariant', () => {
     const blocks = kernel.ganttBlocks;
     expect(blocks.length).toBeGreaterThan(0);
 
-    // 1. Verify CPU Row Non-Overlap
     const cpuBlocks = blocks
       .filter((b) => b.pid === 'CPU_IDLE' || b.state === 'RUNNING')
       .sort((a, b) => a.start - b.start);
@@ -36,11 +28,9 @@ describe('Gantt Chart Non-Overlap Invariant', () => {
       const b2 = cpuBlocks[i + 1];
       const b1End = b1.start + b1.duration;
 
-      // Assert b1 finishes at or before b2 starts
       expect(b1End).toBeLessThanOrEqual(b2.start);
     }
 
-    // 2. Verify Every Process Row Non-Overlap
     const pcbs = kernel.processManager.getAllPcbs();
     for (const pidStr of Object.keys(pcbs)) {
       const pid = Number(pidStr);
