@@ -1,10 +1,3 @@
-/**
- * @file ProcessTable.tsx
- * @description OS Process Table & Parent-Child Tree View.
- * Displays all customer tire orders, state badges, priorities, execution progress,
- * and allows expanding parent-child order trees and inspecting registers.
- */
-
 import React, { useState } from 'react';
 import { PCB } from '../../models/pcb';
 import { ViewMode, VehicleIcon, getTerm } from '../../skin/dictionary';
@@ -79,8 +72,6 @@ export const ProcessTable: React.FC<ProcessTableProps> = ({
         );
     }
   };
-
-  // Group by root parents if tree view
   const rootOrders = allList.filter((p) => p.parentPid === null);
 
   const renderRow = (pcb: PCB, indent: number = 0) => {
