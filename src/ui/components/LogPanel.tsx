@@ -1,9 +1,3 @@
-/**
- * @file LogPanel.tsx
- * @description OS Kernel Log console with multi-criteria filtering.
- * Supports filtering by level (INFO/WARN/ERROR/DEBUG), PID, Syscall, and search terms.
- */
-
 import React, { useState } from 'react';
 import { LogEntry, LogLevel } from '../../kernel/kernelLog';
 import { Search, Filter, Trash2, Terminal, Info } from 'lucide-react';
@@ -24,7 +18,6 @@ export const LogPanel: React.FC<LogPanelProps> = ({
   const [syscallFilter, setSyscallFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Extract unique PIDs and Syscalls from entries
   const uniquePids = Array.from(
     new Set(entries.map((e) => e.pid).filter((p): p is number => p !== undefined))
   ).sort((a, b) => a - b);
