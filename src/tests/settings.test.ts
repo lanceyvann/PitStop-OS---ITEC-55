@@ -1,9 +1,3 @@
-/**
- * @file settings.test.ts
- * @description User Profile & Settings Management Unit Tests.
- * Validates localStorage persistence, input validation, and Reset to Defaults.
- */
-
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SettingsStorage, DEFAULT_USER_SETTINGS } from '../config/settingsStorage';
 
@@ -13,7 +7,6 @@ describe('User Profile and Settings Management', () => {
   });
 
   it('validates vehicle profile inputs and rejects negative or inverted ranges', () => {
-    // Inverted CPU range (min > max)
     const invalidRange = SettingsStorage.validateVehicleProfile({
       name: 'Bad Range',
       tires: 4,
@@ -24,7 +17,6 @@ describe('User Profile and Settings Management', () => {
     expect(invalidRange.valid).toBe(false);
     expect(invalidRange.error).toContain('CPU range min must be > 0 and max >= min');
 
-    // Negative tire count
     const negativeTires = SettingsStorage.validateVehicleProfile({
       name: 'Zero Tires',
       tires: 0,
@@ -34,7 +26,6 @@ describe('User Profile and Settings Management', () => {
     });
     expect(negativeTires.valid).toBe(false);
 
-    // Valid profile
     const valid = SettingsStorage.validateVehicleProfile({
       name: 'Custom Offroad',
       tires: 4,
