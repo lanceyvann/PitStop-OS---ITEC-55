@@ -1,10 +1,3 @@
-/**
- * @file ControlBar.tsx
- * @description Simulation playback control strip.
- * Provides Start/Pause, Step, Reset, Speed Slider, Algorithm Selection,
- * Rush Hour generator, Deadlock demo, Benchmark launcher, and Settings drawer triggers.
- */
-
 import React from 'react';
 import { Play, Pause, SkipForward, RotateCcw, Zap, AlertTriangle, BarChart3, Settings, Plus } from 'lucide-react';
 import { AlgorithmType } from '../../scheduler/types';
