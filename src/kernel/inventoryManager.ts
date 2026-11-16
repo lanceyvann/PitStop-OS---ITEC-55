@@ -1,9 +1,3 @@
-/**
- * @file inventoryManager.ts
- * @description Shared Tire Stock Room Inventory Manager (OS Shared Memory/Resource Pool).
- * Handles stock verification, reservation, deduction, and supplier delivery wake-ups.
- */
-
 import { TireStockItem } from '../models/tireStockItem';
 import { DEFAULT_TIRE_CATALOG } from '../config/defaults';
 
@@ -40,19 +34,12 @@ export class InventoryManager {
     return undefined;
   }
 
-  /**
-   * Checks if required quantity is available (unreserved).
-   */
   public hasAvailableStock(id: string, count: number): boolean {
     const item = this.items.get(id);
     if (!item) return false;
     return item.stock - item.reserved >= count;
   }
 
-  /**
-   * Reserves tires for an active order.
-   * Returns true on success, false if out of stock.
-   */
   public reserveStock(id: string, count: number): boolean {
     const item = this.items.get(id);
     if (!item || item.stock - item.reserved < count) {
@@ -62,9 +49,6 @@ export class InventoryManager {
     return true;
   }
 
-  /**
-   * Releases previously reserved tires without deducting inventory (e.g. on order abortion).
-   */
   public releaseReservation(id: string, count: number): void {
     const item = this.items.get(id);
     if (item) {
@@ -72,9 +56,6 @@ export class InventoryManager {
     }
   }
 
-  /**
-   * Commits and deducts stock when work finishes.
-   */
   public commitStock(id: string, count: number): void {
     const item = this.items.get(id);
     if (item) {
@@ -83,10 +64,6 @@ export class InventoryManager {
     }
   }
 
-  /**
-   * Restocks an item (e.g. supplier restock delivery event).
-   * Returns total available stock after restock.
-   */
   public restock(id: string, count: number): number {
     const item = this.items.get(id);
     if (item) {
@@ -96,9 +73,6 @@ export class InventoryManager {
     return 0;
   }
 
-  /**
-   * Restores inventory state (used during Time Machine rewind).
-   */
   public restoreState(items: TireStockItem[]): void {
     this.items.clear();
     items.forEach((item) => {
