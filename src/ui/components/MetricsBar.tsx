@@ -1,9 +1,3 @@
-/**
- * @file MetricsBar.tsx
- * @description Performance Metrics HUD bar displaying CPU utilization, throughput,
- * average waiting time, turnaround time, response time, and context switch counts.
- */
-
 import React from 'react';
 import { SystemMetrics } from '../../models/snapshot';
 import { ViewMode } from '../../skin/dictionary';
