@@ -1,10 +1,3 @@
-/**
- * @file BenchmarkModal.tsx
- * @description Benchmark Suite Matrix Runner.
- * Executes 4 scheduling algorithms (FCFS, SJF, RR, Priority) against 3 deterministic workloads
- * (CPU-heavy, I/O-heavy, balanced; 15-20 orders each) and exports results to CSV.
- */
-
 import React, { useState } from 'react';
 import { AlgorithmType } from '../../scheduler/types';
 import { createBenchmarkWorkload } from '../../config/workloads';
