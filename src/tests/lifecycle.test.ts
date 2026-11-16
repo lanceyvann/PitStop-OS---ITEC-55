@@ -1,9 +1,3 @@
-/**
- * @file lifecycle.test.ts
- * @description OS Process 5-State Lifecycle Transition Matrix Unit Tests.
- * Asserts that illegal transitions are strictly rejected and legal transitions succeed.
- */
-
 import { describe, it, expect } from 'vitest';
 import { ProcessManager } from '../kernel/processManager';
 import { PCB } from '../models/pcb';
@@ -48,34 +42,28 @@ describe('OS Process 5-State Lifecycle Rejection & Validation', () => {
     const pcb = createDummyPcb(1);
     pm.registerProcess(pcb);
 
-    // NEW -> READY
     const r1 = pm.transitionState(1, 'READY');
     expect(r1.success).toBe(true);
     expect(pm.getPcb(1)?.state).toBe('READY');
     expect(pm.getReadyQueuePids()).toContain(1);
 
-    // READY -> RUNNING
     const r2 = pm.transitionState(1, 'RUNNING');
     expect(r2.success).toBe(true);
     expect(pm.getPcb(1)?.state).toBe('RUNNING');
     expect(pm.getRunningPid()).toBe(1);
 
-    // RUNNING -> WAITING
     const r3 = pm.transitionState(1, 'WAITING', 'I/O Request');
     expect(r3.success).toBe(true);
     expect(pm.getPcb(1)?.state).toBe('WAITING');
     expect(pm.getWaitingQueuePids()).toContain(1);
 
-    // WAITING -> READY
     const r4 = pm.transitionState(1, 'READY');
     expect(r4.success).toBe(true);
     expect(pm.getPcb(1)?.state).toBe('READY');
 
-    // READY -> RUNNING
     const r5 = pm.transitionState(1, 'RUNNING');
     expect(r5.success).toBe(true);
 
-    // RUNNING -> TERMINATED
     const r6 = pm.transitionState(1, 'TERMINATED');
     expect(r6.success).toBe(true);
     expect(pm.getPcb(1)?.state).toBe('TERMINATED');
