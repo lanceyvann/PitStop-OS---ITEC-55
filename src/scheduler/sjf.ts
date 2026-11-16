@@ -1,10 +1,3 @@
-/**
- * @file sjf.ts
- * @description Shortest Job First (SJF) Scheduling Strategy.
- * Selects the waiting process with the smallest remaining CPU burst time.
- * Tie-break: earlier arrival time, then lower PID.
- */
-
 import { ISchedulingStrategy, SchedulingContext, SchedulingDecision } from './types';
 import { PCB } from '../models/pcb';
 
@@ -13,7 +6,6 @@ export class SjfStrategy implements ISchedulingStrategy {
   public readonly label = 'Shortest Job First (SJF)';
 
   public selectNext(ctx: SchedulingContext): SchedulingDecision {
-    // Non-preemptive: keep executing current process until it completes or blocks
     if (ctx.currentRunning && ctx.currentRunning.state === 'RUNNING') {
       return {
         nextPid: ctx.currentRunning.pid,
@@ -30,7 +22,6 @@ export class SjfStrategy implements ISchedulingStrategy {
       };
     }
 
-    // Sort by remaining CPU time ASC, tie-break: arrivalTime ASC, then pid ASC
     const sorted = [...ctx.readyQueue].sort((a: PCB, b: PCB) => {
       if (a.remainingCpuTime !== b.remainingCpuTime) {
         return a.remainingCpuTime - b.remainingCpuTime;
