@@ -1,9 +1,3 @@
-/**
- * @file lockManager.ts
- * @description Mutex Lock Manager for workshop equipment (Changer, Balancer, Register).
- * Enforces mutual exclusion, queueing, and fair FIFO release unblocking.
- */
-
 import { Lock, LockId } from '../models/lock';
 import { DEFAULT_LOCKS } from '../config/defaults';
 
@@ -46,39 +40,26 @@ export class LockManager {
     }
   }
 
-  /**
-   * Attempts to acquire lock for process `pid`.
-   * Returns true if granted immediately, false if blocked.
-   */
   public acquire(pid: number, id: LockId, tick: number): boolean {
     const lock = this.locks.get(id);
     if (!lock) return false;
 
-    // Already held by this process
     if (lock.heldByPid === pid) {
       return true;
     }
-
-    // Unlocked: grant immediately
     if (lock.heldByPid === null) {
       lock.heldByPid = pid;
       lock.lastAcquiredAt = tick;
-      // Remove from waitQueue if present
       lock.waitingPids = lock.waitingPids.filter((p) => p !== pid);
       return true;
     }
 
-    // Busy: add to waiting queue if not already there
     if (!lock.waitingPids.includes(pid)) {
       lock.waitingPids.push(pid);
     }
     return false;
   }
 
-  /**
-   * Releases lock held by `pid`.
-   * If other processes are waiting, grants lock to next in queue and returns its PID.
-   */
   public release(pid: number, id: LockId, tick: number): { success: boolean; nextPid: number | null } {
     const lock = this.locks.get(id);
     if (!lock) return { success: false, nextPid: null };
@@ -86,8 +67,6 @@ export class LockManager {
     if (lock.heldByPid !== pid) {
       return { success: false, nextPid: null };
     }
-
-    // Check if other processes are waiting
     if (lock.waitingPids.length > 0) {
       const nextPid = lock.waitingPids.shift()!;
       lock.heldByPid = nextPid;
@@ -99,9 +78,6 @@ export class LockManager {
     }
   }
 
-  /**
-   * Forcefully releases a lock (administrative intervention for deadlock recovery).
-   */
   public forceRelease(id: LockId, tick: number): { previousHolder: number | null; nextPid: number | null } {
     const lock = this.locks.get(id);
     if (!lock) return { previousHolder: null, nextPid: null };
@@ -118,18 +94,12 @@ export class LockManager {
     }
   }
 
-  /**
-   * Cleans up all locks held or waited on by a terminating/aborted process.
-   * Returns list of any nextPids that got unblocked as a result.
-   */
   public releaseAllForPid(pid: number, tick: number): Array<{ lockId: LockId; unblockedPid: number }> {
     const unblocked: Array<{ lockId: LockId; unblockedPid: number }> = [];
 
     for (const lock of this.locks.values()) {
-      // Remove from waiting queue if queued
       lock.waitingPids = lock.waitingPids.filter((p) => p !== pid);
 
-      // If held by this process, release and hand over to next waiter
       if (lock.heldByPid === pid) {
         if (lock.waitingPids.length > 0) {
           const nextPid = lock.waitingPids.shift()!;
@@ -145,9 +115,6 @@ export class LockManager {
     return unblocked;
   }
 
-  /**
-   * Restores locks map state from snapshot.
-   */
   public restoreState(locks: Record<LockId, Lock>): void {
     this.locks.clear();
     Object.values(locks).forEach((l) => {
