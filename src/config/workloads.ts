@@ -1,9 +1,3 @@
-/**
- * @file workloads.ts
- * @description Standardized, deterministic workload generators for benchmarks and testing.
- * Uses seeded PRNG to ensure that benchmark runs are strictly reproducible.
- */
-
 import { PCB, BurstSegment } from '../models/pcb';
 import { Mulberry32 } from './prng';
 import { DEFAULT_VEHICLE_PROFILES, DEFAULT_VEHICLE_MODELS, DEFAULT_TIRE_CATALOG, COLOR_PALETTE } from './defaults';
@@ -22,9 +16,6 @@ export interface WorkloadOrderConfig {
   parentPid?: number | null;
 }
 
-/**
- * Creates alternating CPU/IO burst segments based on vehicle profile and scaling.
- */
 export function generateBurstPlan(
   tires: number,
   cpuMin: number,
@@ -33,14 +24,6 @@ export function generateBurstPlan(
   ioMax: number,
   prng: Mulberry32
 ): BurstSegment[] {
-  // Plan structure:
-  // 1. Consultation & Inspection (CPU)
-  // 2. Stockroom Tire Retrieval (I/O - requires stock)
-  // 3. Dismounting & Rim Prep (CPU)
-  // 4. Bead Seating & Inflation on Tire Changer (CPU - requires lock_tire_changer)
-  // 5. Dynamic Spin Balancing (CPU - requires lock_wheel_balancer)
-  // 6. POS Invoicing & Payment (I/O - requires lock_cash_register)
-  // 7. Final Torque Wrench Lug Inspection (CPU)
 
   const cpuConsult = Math.max(1, Math.round(prng.range(cpuMin, Math.min(cpuMin + 1, cpuMax)) * 0.3));
   const ioStock = Math.max(1, prng.range(ioMin, ioMax));
@@ -99,9 +82,6 @@ export function generateBurstPlan(
   ];
 }
 
-/**
- * Builds a fresh PCB from order configuration.
- */
 export function buildPCB(cfg: WorkloadOrderConfig, colorIdx: number): PCB {
   const totalCpu = cfg.burstPlan.reduce((acc, s) => acc + (s.type === 'CPU' ? s.duration : 0), 0);
   const totalIo = cfg.burstPlan.reduce((acc, s) => acc + (s.type === 'IO' ? s.duration : 0), 0);
@@ -127,7 +107,7 @@ export function buildPCB(cfg: WorkloadOrderConfig, colorIdx: number): PCB {
       PC: 0x0010,
       SP: 0x7FFF,
       AX: cfg.tireCount,
-      BX: cfg.tireCount * 110, // Torque setting in Nm
+      BX: cfg.tireCount * 110, 
       CX: 0,
       DX: cfg.pid * 100,
     },
@@ -167,9 +147,6 @@ export function buildPCB(cfg: WorkloadOrderConfig, colorIdx: number): PCB {
   };
 }
 
-/**
- * Generates synthetic benchmark workloads.
- */
 export function createBenchmarkWorkload(
   type: 'cpu-heavy' | 'io-heavy' | 'balanced',
   seed: number = 42
@@ -181,11 +158,9 @@ export function createBenchmarkWorkload(
   for (let i = 1; i <= count; i++) {
     let vProfile = prng.choice(DEFAULT_VEHICLE_PROFILES);
     if (type === 'cpu-heavy') {
-      // Favor Truck, Bus, SUV
       const heavy = DEFAULT_VEHICLE_PROFILES.filter((p) => p.tires >= 4);
       vProfile = prng.choice(heavy);
     } else if (type === 'io-heavy') {
-      // Favor Jeepney, Fleet, Long IO
       const ioHeavy = DEFAULT_VEHICLE_PROFILES.filter((p) => p.ioRange[1] >= 4);
       vProfile = prng.choice(ioHeavy);
     }
@@ -224,9 +199,6 @@ export function createBenchmarkWorkload(
   return pcbs;
 }
 
-/**
- * Generates a burst of Rush Hour arrivals starting at currentClock.
- */
 export function generateRushHourArrivals(
   startPid: number,
   currentClock: number,
@@ -243,7 +215,6 @@ export function generateRushHourArrivals(
     const model = modelsForType.length > 0 ? prng.choice(modelsForType) : DEFAULT_VEHICLE_MODELS[0];
     const tire = DEFAULT_TIRE_CATALOG.find((t) => t.size === model.tireSpec) || DEFAULT_TIRE_CATALOG[0];
 
-    // Clustered arrivals over 0 to 3 ticks
     const arrival = currentClock + prng.range(0, 3);
     const burstPlan = generateBurstPlan(
       model.tireCount,
@@ -261,7 +232,7 @@ export function generateRushHourArrivals(
       modelId: model.name,
       tireSpec: tire.size,
       tireCount: model.tireCount,
-      priority: vProfile.defaultPriority + prng.range(1, 2), // Rush surcharge priority
+      priority: vProfile.defaultPriority + prng.range(1, 2), 
       arrivalTime: arrival,
       burstPlan,
     };
@@ -272,11 +243,6 @@ export function generateRushHourArrivals(
   return rushList;
 }
 
-/**
- * Creates the classic scripted Deadlock scenario:
- * Order A (PID 101) holds Tire Changer, wants Wheel Balancer.
- * Order B (PID 102) holds Wheel Balancer, wants Tire Changer.
- */
 export function createDeadlockScenario(): {
   orders: PCB[];
   locksSetup: { lockId: LockId; heldByPid: number }[];
@@ -311,7 +277,7 @@ export function createDeadlockScenario(): {
         requiredLock: 'lock_wheel_balancer',
       },
     ],
-    currentSegmentIndex: 1, // Ready to request second lock
+    currentSegmentIndex: 1, 
     totalCpuBurst: 8,
     totalIoBurst: 0,
     remainingCpuTime: 4,
@@ -360,7 +326,7 @@ export function createDeadlockScenario(): {
         requiredLock: 'lock_tire_changer',
       },
     ],
-    currentSegmentIndex: 1, // Ready to request second lock
+    currentSegmentIndex: 1,
     totalCpuBurst: 8,
     totalIoBurst: 0,
     remainingCpuTime: 4,
