@@ -21,7 +21,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
   onOpenWhy,
   viewMode,
 }) => {
-  const [unitWidth, setUnitWidth] = useState<number>(32); // Min 28px
+  const [unitWidth, setUnitWidth] = useState<number>(32); 
   const [hoveredBlock, setHoveredBlock] = useState<{
     block: GanttBlock;
     x: number;
@@ -30,11 +30,9 @@ export const GanttChart: React.FC<GanttChartProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Maximum timeline duration to render (at least currentClock + 10)
   const maxTime = Math.max(25, currentClock + 6);
   const totalChartWidth = maxTime * unitWidth;
 
-  // Auto-scroll to follow execution when running
   useEffect(() => {
     if (isRunning && containerRef.current) {
       const scrollPos = currentClock * unitWidth - containerRef.current.clientWidth + 200;
@@ -44,9 +42,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
     }
   }, [currentClock, isRunning, unitWidth]);
 
-  // Runtime assertion: verify no overlapping bars in the CPU row or within any process row
   useEffect(() => {
-    // Check CPU blocks
     const cpuBlocks = blocks.filter((b) => b.pid === 'CPU_IDLE' || b.state === 'RUNNING');
     for (let i = 0; i < cpuBlocks.length - 1; i++) {
       const b1 = cpuBlocks[i];
@@ -56,12 +52,9 @@ export const GanttChart: React.FC<GanttChartProps> = ({
       }
     }
   }, [blocks]);
-
-  // Separate blocks by row
   const cpuRowBlocks = blocks.filter((b) => b.pid === 'CPU_IDLE' || b.state === 'RUNNING');
   const contextSwitchBlocks = blocks.filter((b) => b.pid === 'CONTEXT_SWITCH');
 
-  // Unique list of processes that have appeared in the system
   const pcbList = Object.values(pcbs);
 
   const getBarStyle = (block: GanttBlock) => {
