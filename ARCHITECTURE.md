@@ -1,4 +1,4 @@
-# Tire Shop Kernel Architecture Specification 🏛️
+# Tire Shop Kernel Architecture Specification 
 
 > **Course**: ITEC 55 Platform Technologies  
 > **Topic**: Operating System Micro-Architecture, CPU Scheduling, Resource Management & Concurrency
