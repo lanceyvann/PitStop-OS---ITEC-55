@@ -1,9 +1,3 @@
-/**
- * @file snapshot.ts
- * @description Deep snapshot representation of entire kernel & simulation state at tick T.
- * Powers the Time Machine feature to rewind, inspect, and replay the simulation deterministically.
- */
-
 import { PCB } from './pcb';
 import { Lock, LockId } from './lock';
 import { TireStockItem } from './tireStockItem';
@@ -19,8 +13,8 @@ export interface GanttBlock {
 }
 
 export interface SystemMetrics {
-  cpuUtilization: number;   // 0% - 100%
-  throughput: number;       // completed processes / elapsed ticks
+  cpuUtilization: number;  
+  throughput: number;      
   avgWaitingTime: number;
   avgTurnaroundTime: number;
   avgResponseTime: number;
