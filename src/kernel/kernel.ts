@@ -1,10 +1,3 @@
-/**
- * @file kernel.ts
- * @description Central Tire Shop OS Kernel Engine.
- * Coordinates system ticks, CPU context switches, process lifecycles, mutex locks,
- * shared inventory, Gantt history generation, and Time Machine snapshots.
- */
-
 import { KernelLog } from './kernelLog';
 import { ProcessManager } from './processManager';
 import { LockManager } from './lockManager';
@@ -30,11 +23,9 @@ export class Kernel {
   public readonly inventoryManager: InventoryManager;
   public readonly threadManager: ThreadManager;
   public readonly scheduler: Scheduler;
-  
-  // Pending pool of incoming arrivals that haven't arrived yet
+
   public futureArrivals: PCB[] = [];
-  
-  // Metrics & State Tracking
+
   public currentQuantumUsed: number = 0;
   public totalBusyTicks: number = 0;
   public contextSwitchCount: number = 0;
@@ -46,14 +37,11 @@ export class Kernel {
     summary: 'Normal execution',
     suggestedVictimPid: null,
   };
-  
-  // Gantt Chart State
+
   public ganttBlocks: GanttBlock[] = [];
-  
-  // Time Machine Snapshots (one snapshot captured at every tick)
+
   public snapshots: SimulationSnapshot[] = [];
-  
-  // Seeded PRNG for deterministic runtime events
+ 
   public prng: Mulberry32;
 
   constructor(seed: number = 1337) {
@@ -68,9 +56,6 @@ export class Kernel {
     this.boot();
   }
 
-  /**
-   * Initializes OS subsystems and records boot sequence.
-   */
   public boot(): void {
     this.clock = 0;
     this.mode = 'USER';
@@ -99,9 +84,6 @@ export class Kernel {
     };
   }
 
-  /**
-   * Enqueues an incoming order into future arrivals or ready queue.
-   */
   public submitOrder(order: PCB): void {
     this.processManager.registerProcess(order);
     if (order.arrivalTime <= this.clock) {
@@ -124,14 +106,9 @@ export class Kernel {
     }
   }
 
-  /**
-   * Core Single-Tick Simulation Step.
-   * Advances the clock by exactly 1 tick, updating queues, CPU execution, and metrics.
-   */
   public step(): void {
     this.clock += 1;
 
-    // 1. Check for new arrivals scheduled for this tick
     const arrivingNow = this.futureArrivals.filter((p) => p.arrivalTime <= this.clock);
     this.futureArrivals = this.futureArrivals.filter((p) => p.arrivalTime > this.clock);
 
@@ -146,10 +123,8 @@ export class Kernel {
       );
     }
 
-    // 2. Advance Waiting I/O processes
     this.advanceWaitingProcesses();
 
-    // 3. Advance Priority Aging
     if (this.scheduler.agingEnabled && this.scheduler.getAlgorithm() === 'PRIORITY') {
       const readyPids = this.processManager.getReadyQueuePids();
       for (const pid of readyPids) {
@@ -169,7 +144,6 @@ export class Kernel {
       }
     }
 
-    // 4. Run CPU Scheduling Decision
     const currentRunning = this.processManager.getRunningPcb();
     const readyQueue = this.processManager.getReadyQueue();
 
@@ -180,18 +154,15 @@ export class Kernel {
       currentTime: this.clock,
     });
 
-    // Handle preemption if signaled by strategy
     if (decision.shouldPreempt && currentRunning && decision.nextPid !== currentRunning.pid) {
       Syscalls.yield(currentRunning.pid, this.getSyscallContext(), decision.reason);
       this.currentQuantumUsed = 0;
     }
 
-    // Check if we need to dispatch a new process onto the CPU
     let activeRunning = this.processManager.getRunningPcb();
     if (!activeRunning && decision.nextPid !== null) {
       const nextPcb = this.processManager.getPcb(decision.nextPid);
       if (nextPcb) {
-        // Context switch!
         if (this.lastRunningPid !== null && this.lastRunningPid !== nextPcb.pid) {
           this.contextSwitchCount += 1;
           this.recordGanttBlock('CONTEXT_SWITCH', this.clock - 1, 1, 'SWITCH', `Switch to #${nextPcb.pid}`);
@@ -206,7 +177,6 @@ export class Kernel {
         this.currentQuantumUsed = 0;
         activeRunning = nextPcb;
 
-        // Record first CPU time for response time calculation
         if (activeRunning.firstCpuTime === null) {
           activeRunning.firstCpuTime = this.clock - 1;
           activeRunning.responseTime = Math.max(0, activeRunning.firstCpuTime - activeRunning.arrivalTime);
@@ -216,23 +186,18 @@ export class Kernel {
       }
     }
 
-    // 5. Execute CPU step for the active process
     if (activeRunning && activeRunning.state === 'RUNNING') {
       this.totalBusyTicks += 1;
       this.currentQuantumUsed += 1;
       this.lastRunningPid = activeRunning.pid;
 
-      // Update register PC
       activeRunning.registers.PC += 1;
 
-      // Check current burst segment
       const currentSegment = activeRunning.burstPlan[activeRunning.currentSegmentIndex];
       if (currentSegment && currentSegment.type === 'CPU') {
-        // Check if segment requires a mutex lock that we haven't acquired
         if (currentSegment.requiredLock && !activeRunning.heldLocks.includes(currentSegment.requiredLock)) {
           const acquired = Syscalls.acquireLock(activeRunning.pid, currentSegment.requiredLock, this.getSyscallContext());
           if (!acquired) {
-            // Blocked on lock! Cannot execute CPU this tick
             this.recordGanttBlock(
               activeRunning.pid,
               this.clock - 1,
@@ -248,7 +213,6 @@ export class Kernel {
         currentSegment.remaining -= 1;
         activeRunning.remainingCpuTime = Math.max(0, activeRunning.remainingCpuTime - 1);
 
-        // Record CPU execution block on Gantt
         this.recordGanttBlock(
           activeRunning.pid,
           this.clock - 1,
@@ -258,31 +222,23 @@ export class Kernel {
           decision.reason
         );
 
-        // Advance thread step
         if (activeRunning.threads.length > 0) {
           const activeThread = activeRunning.threads[0];
           this.threadManager.stepThread(activeThread, `exec_step_${activeRunning.registers.PC}`);
         }
 
-        // Did current CPU segment finish?
         if (currentSegment.remaining <= 0) {
-          // Release segment lock if tied to segment
           if (currentSegment.requiredLock) {
             Syscalls.releaseLock(activeRunning.pid, currentSegment.requiredLock, this.getSyscallContext());
           }
-
-          // Advance to next segment
           activeRunning.currentSegmentIndex += 1;
 
-          // Check if all segments are completed
           if (activeRunning.currentSegmentIndex >= activeRunning.burstPlan.length) {
             Syscalls.terminateProcess(activeRunning.pid, this.getSyscallContext());
             this.currentQuantumUsed = 0;
           } else {
-            // Check next segment
             const nextSegment = activeRunning.burstPlan[activeRunning.currentSegmentIndex];
             if (nextSegment.type === 'IO') {
-              // Initiate I/O burst
               Syscalls.ioRequest(activeRunning.pid, nextSegment.duration, nextSegment.label, this.getSyscallContext());
               this.currentQuantumUsed = 0;
             }
@@ -290,20 +246,13 @@ export class Kernel {
         }
       }
     } else {
-      // CPU is idle
       this.recordGanttBlock('CPU_IDLE', this.clock - 1, 1, 'IDLE', 'Fitting Bay Lift Idle', 'No orders in Ready queue');
     }
 
-    // 6. Deadlock Detection Check
     this.checkDeadlocks();
 
-    // 7. Save Snapshot for Time Machine
     this.captureSnapshot();
   }
-
-  /**
-   * Advances waiting I/O burst durations and handles stock unblocking.
-   */
   private advanceWaitingProcesses(): void {
     const waitingPids = this.processManager.getWaitingQueuePids();
 
@@ -311,7 +260,6 @@ export class Kernel {
       const pcb = this.processManager.getPcb(pid);
       if (!pcb || pcb.state !== 'WAITING') continue;
 
-      // If waiting for stock:
       if (pcb.waitingForStock) {
         const hasStock = this.inventoryManager.hasAvailableStock(
           pcb.waitingForStock.tireId,
@@ -328,7 +276,6 @@ export class Kernel {
         continue;
       }
 
-      // If waiting for lock:
       if (pcb.waitingForLock) {
         const isDeadlocked = this.latestDeadlockReport.cyclePids.includes(pid);
         this.recordGanttBlock(
@@ -342,14 +289,12 @@ export class Kernel {
         continue;
       }
 
-      // Standard I/O burst segment progression
       const currentSegment = pcb.burstPlan[pcb.currentSegmentIndex];
       if (currentSegment && currentSegment.type === 'IO') {
         currentSegment.remaining -= 1;
         this.recordGanttBlock(pid, this.clock - 1, 1, 'WAITING', currentSegment.label, 'Executing external I/O burst');
 
         if (currentSegment.remaining <= 0) {
-          // I/O completed! Transition back to READY
           pcb.currentSegmentIndex += 1;
           if (pcb.currentSegmentIndex >= pcb.burstPlan.length) {
             Syscalls.terminateProcess(pid, this.getSyscallContext());
@@ -362,15 +307,11 @@ export class Kernel {
     }
   }
 
-  /**
-   * Run deadlock detection on current state.
-   */
   public checkDeadlocks(): DeadlockReport {
     const pcbs = this.processManager.getAllPcbs();
     const locks = this.lockManager.getLocks();
     const report = DeadlockDetector.detect(pcbs, locks);
 
-    // Update isDeadlocked flag on pcbs
     for (const pcb of Object.values(pcbs)) {
       pcb.isDeadlocked = report.cyclePids.includes(pcb.pid);
     }
@@ -383,9 +324,6 @@ export class Kernel {
     return report;
   }
 
-  /**
-   * Deadlock Recovery: Abort victim process.
-   */
   public abortVictimProcess(victimPid: number): void {
     this.logger.warn(
       'LOCK',
@@ -397,9 +335,6 @@ export class Kernel {
     this.checkDeadlocks();
   }
 
-  /**
-   * Deadlock Recovery: Force-release a lock.
-   */
   public forceReleaseLock(lockId: LockId): void {
     const { previousHolder, nextPid } = this.lockManager.forceRelease(lockId, this.clock);
     this.logger.warn(
@@ -420,9 +355,6 @@ export class Kernel {
     this.checkDeadlocks();
   }
 
-  /**
-   * Supplier Restock Event (adds inventory and wakes up any waiting processes).
-   */
   public restockTires(tireId: string, quantity: number): void {
     this.inventoryManager.restock(tireId, quantity);
     const item = this.inventoryManager.getItem(tireId);
@@ -432,7 +364,6 @@ export class Kernel {
       this.clock
     );
 
-    // Wake up any orders waiting for this stock
     const waitingPids = this.processManager.getWaitingQueuePids();
     for (const pid of waitingPids) {
       const pcb = this.processManager.getPcb(pid);
@@ -447,10 +378,6 @@ export class Kernel {
     }
   }
 
-  /**
-   * Records or extends contiguous Gantt blocks.
-   * Merges contiguous blocks of the same state and PID to keep timeline tidy.
-   */
   private recordGanttBlock(
     pid: number | 'CPU_IDLE' | 'CONTEXT_SWITCH',
     start: number,
@@ -476,9 +403,6 @@ export class Kernel {
     });
   }
 
-  /**
-   * Computes comprehensive scheduling performance metrics.
-   */
   public calculateMetrics(): SystemMetrics {
     const pcbs = Object.values(this.processManager.getAllPcbs());
     const completed = pcbs.filter((p) => p.state === 'TERMINATED' && p.completionTime !== null);
@@ -503,9 +427,6 @@ export class Kernel {
     };
   }
 
-  /**
-   * Captures a deep snapshot of the entire simulation state at current clock tick.
-   */
   public captureSnapshot(): SimulationSnapshot {
     const snap: SimulationSnapshot = {
       tick: this.clock,
@@ -534,9 +455,6 @@ export class Kernel {
     return snap;
   }
 
-  /**
-   * Time Machine: Rewinds simulation state to an earlier tick T.
-   */
   public rewindToTick(targetTick: number): boolean {
     if (targetTick < 0 || targetTick >= this.snapshots.length) return false;
 
@@ -549,10 +467,8 @@ export class Kernel {
     this.totalBusyTicks = snap.metrics.totalBusyTicks;
     this.contextSwitchCount = snap.metrics.contextSwitchCount;
 
-    // Restore pending future arrivals
     this.futureArrivals = snap.futureArrivals ? JSON.parse(JSON.stringify(snap.futureArrivals)) : [];
 
-    // Restore subsystems
     this.processManager.restoreState(
       snap.pcbs,
       snap.readyQueuePids,
@@ -564,10 +480,7 @@ export class Kernel {
     this.inventoryManager.restoreState(snap.inventory);
     this.prng.setState(snap.prngState);
 
-    // Truncate event logs to what was recorded up to this snapshot
     this.logger.truncateToCount(snap.logsCount);
-
-    // Restore Gantt history and snapshots up to this tick
     this.ganttBlocks = JSON.parse(JSON.stringify(snap.ganttBlocks));
     this.snapshots = this.snapshots.slice(0, targetTick + 1);
 
