@@ -1,11 +1,11 @@
-# Tire Shop Kernel 
+# Tire Shop Kernel 🚗🔧
 
 > **A GUI-based Operating System Simulator for ITEC 55 (Platform Technologies)**  
 > University Course Project mapping Tire Retail & Fitting Shop Operations to Core Operating System Concepts.
 
 ---
 
-## Prerequisites & Setup
+## 🛠️ Prerequisites & Setup
 
 ### Prerequisites
 - **Node.js**: v18.0.0 or higher (v20+ recommended)
@@ -29,7 +29,7 @@ npm run build
 
 ---
 
-## The Scenario Metaphor (Shop View ⇄ OS View)
+## 🏬 The Scenario Metaphor (Shop View ⇄ OS View)
 
 Every workshop operation in the tire retail store maps 1:1 to a fundamental operating system construct:
 
@@ -55,7 +55,7 @@ Every workshop operation in the tire retail store maps 1:1 to a fundamental oper
 
 ---
 
-## Key Features
+## 🌟 Key Features
 
 1. **Dual View Toggle**: Switch instantly between **Story View** (tire workshop terminology) and **OS View** (standard operating system terminology) without altering runtime state.
 2. **Four Scheduling Strategies**:
@@ -90,7 +90,7 @@ Every workshop operation in the tire retail store maps 1:1 to a fundamental oper
 
 ---
 
-## Running Unit Tests
+## 🧪 Running Unit Tests
 
 The test suite runs with **Vitest**:
 

@@ -1,0 +1,6 @@
+{
+  "name": "PITSTOP OS",
+  "description": "A GUI-based mini-OS simulator mapping tire shop operations to operating system concepts for ITEC 55 Platform Technologies.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_API"]
+}
