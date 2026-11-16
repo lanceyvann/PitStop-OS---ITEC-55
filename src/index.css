@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-cream: #F6EFE0;
+    --card-cream: #FFFAF0;
+    --charcoal: #1A1A1A;
+    --border-cream: #E4D9C3;
+    --burnt-orange: #CC5500;
+    --burnt-orange-hover: #A84500;
+
+    --state-new: #8A7F6B;
+    --state-ready: #D9A441;
+    --state-running: #CC5500;
+    --state-waiting: #5B6C7A;
+    --state-terminated: #2B2B2B;
+    --state-deadlock: #B3261E;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-cream);
+    color: var(--charcoal);
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Fraunces', Georgia, serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.tire-tread-pattern {
+  background-color: #1A1A1A;
+  background-image: radial-gradient(rgba(246, 239, 224, 0.08) 1.5px, transparent 1.5px),
+    radial-gradient(rgba(246, 239, 224, 0.08) 1.5px, #1A1A1A 1.5px);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+
+.hatch-waiting {
+  background: repeating-linear-gradient(
+    45deg,
+    #5B6C7A,
+    #5B6C7A 6px,
+    #475569 6px,
+    #475569 12px
+  );
+}
+
+.hatch-deadlock {
+  background: repeating-linear-gradient(
+    45deg,
+    #B3261E,
+    #B3261E 6px,
+    #7F1D1D 6px,
+    #7F1D1D 12px
+  );
+}
+
+.ready-pattern {
+  background-color: #FBF4DE;
+  border: 1.5px dashed #D9A441;
+  color: #78350F;
+}
+
+.cpu-idle-pattern {
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 4px,
+    #D1D5DB 4px,
+    #D1D5DB 8px
+  );
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #EFE6D2;
+}
+::-webkit-scrollbar-thumb {
+  background: #CFC1A6;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B5A485;
+}
