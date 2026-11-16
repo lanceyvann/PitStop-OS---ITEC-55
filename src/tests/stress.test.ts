@@ -1,10 +1,3 @@
-/**
- * @file stress.test.ts
- * @description 50+ Process Scale & Stress Unit Test.
- * Asserts that the mini-OS manages 50+ concurrent/sequential customer orders without
- * state corruption, queue leakage, or orphaned equipment lock holders.
- */
-
 import { describe, it, expect } from 'vitest';
 import { Kernel } from '../kernel/kernel';
 import { PCB } from '../models/pcb';
@@ -49,7 +42,6 @@ describe('50+ Processes Scale & Stress Testing', () => {
     kernel.scheduler.setAlgorithm('RR');
     kernel.scheduler.quantum = 3;
 
-    // Generate 55 processes across staggered arrival times
     const totalOrders = 55;
     for (let i = 1; i <= totalOrders; i++) {
       const arrival = Math.floor((i - 1) / 3);
@@ -59,7 +51,6 @@ describe('50+ Processes Scale & Stress Testing', () => {
     const registered = Object.keys(kernel.processManager.getAllPcbs()).length;
     expect(registered).toBeGreaterThanOrEqual(totalOrders);
 
-    // Run simulation loop until all processes complete
     let safetyLimit = 500;
     while (safetyLimit > 0) {
       const pcbs = Object.values(kernel.processManager.getAllPcbs());
@@ -72,7 +63,6 @@ describe('50+ Processes Scale & Stress Testing', () => {
 
     expect(safetyLimit).toBeGreaterThan(0);
 
-    // Verify all processes terminated cleanly
     const finalPcbs = Object.values(kernel.processManager.getAllPcbs());
     expect(finalPcbs.length).toBe(totalOrders);
     for (const p of finalPcbs) {
@@ -81,12 +71,10 @@ describe('50+ Processes Scale & Stress Testing', () => {
       expect(p.turnaroundTime).toBeGreaterThanOrEqual(p.totalCpuBurst);
     }
 
-    // Assert zero queue leakage
     expect(kernel.processManager.getReadyQueuePids().length).toBe(0);
     expect(kernel.processManager.getWaitingQueuePids().length).toBe(0);
     expect(kernel.processManager.getRunningPid()).toBeNull();
 
-    // Assert all mutex locks are released
     const locks = kernel.lockManager.getLocks();
     for (const lock of Object.values(locks)) {
       expect(lock.heldByPid).toBeNull();
