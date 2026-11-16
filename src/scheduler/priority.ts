@@ -1,10 +1,3 @@
-/**
- * @file priority.ts
- * @description Priority Scheduling Strategy with Optional Aging.
- * Dispatches processes with highest effective priority (higher numeric value = higher priority).
- * Optional aging increments priority to prevent starvation of low-priority vehicles.
- */
-
 import { ISchedulingStrategy, SchedulingContext, SchedulingDecision } from './types';
 import { PCB } from '../models/pcb';
 
@@ -28,13 +21,12 @@ export class PriorityStrategy implements ISchedulingStrategy {
       };
     }
 
-    // Sort ready queue by effective priority DESC, tie-break: arrivalTime ASC, then pid ASC
     const sorted = [...ctx.readyQueue].sort((a: PCB, b: PCB) => {
       const effA = a.priority + (ctx.agingEnabled ? a.agingBoost : 0);
       const effB = b.priority + (ctx.agingEnabled ? b.agingBoost : 0);
 
       if (effA !== effB) {
-        return effB - effA; // Descending
+        return effB - effA; 
       }
       if (a.arrivalTime !== b.arrivalTime) {
         return a.arrivalTime - b.arrivalTime;
@@ -45,7 +37,6 @@ export class PriorityStrategy implements ISchedulingStrategy {
     const highestReady = sorted[0];
     const highestReadyEff = highestReady.priority + (ctx.agingEnabled ? highestReady.agingBoost : 0);
 
-    // If something is currently running, check for preemption
     if (ctx.currentRunning && ctx.currentRunning.state === 'RUNNING') {
       const runningEff = ctx.currentRunning.priority + (ctx.agingEnabled ? ctx.currentRunning.agingBoost : 0);
 
@@ -63,8 +54,6 @@ export class PriorityStrategy implements ISchedulingStrategy {
         reason: `Order #${ctx.currentRunning.pid} continues running with priority ${runningEff}.`,
       };
     }
-
-    // CPU is idle
     return {
       nextPid: highestReady.pid,
       shouldPreempt: false,
