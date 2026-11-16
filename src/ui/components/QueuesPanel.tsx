@@ -1,9 +1,3 @@
-/**
- * @file QueuesPanel.tsx
- * @description OS Queues visualization panel.
- * Displays the Active Fitting Bay (CPU), Waiting Lane (Ready Queue), and Blocked I/O / Mutex Queue.
- */
-
 import React from 'react';
 import { PCB } from '../../models/pcb';
 import { ViewMode, VehicleIcon, getTerm } from '../../skin/dictionary';
