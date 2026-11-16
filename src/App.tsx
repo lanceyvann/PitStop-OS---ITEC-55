@@ -1,9 +1,3 @@
-/**
- * @file App.tsx
- * @description Main Application Entry for Tire Shop Kernel (ITEC 55 Mini-OS Simulator).
- * Coordinates simulation tick loop, state updates, modal drawers, and responsive 3-column layout.
- */
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Kernel } from './kernel/kernel';
 import { AlgorithmType } from './scheduler/types';
@@ -30,23 +24,19 @@ import { BenchmarkModal } from './ui/components/BenchmarkModal';
 import { BeginnerGuideModal } from './ui/components/BeginnerGuideModal';
 
 export default function App() {
-  // Load persistent user settings
   const [settings, setSettings] = useState<UserShopSettings>(() => SettingsStorage.load());
   const [viewMode, setViewMode] = useState<ViewMode>(settings.viewMode || 'OS');
   const [speedMs, setSpeedMs] = useState<number>(settings.speedMs || 250);
 
-  // Kernel authoritative instance
   const kernelRef = useRef<Kernel>(new Kernel(1337));
   const [, setRenderTrigger] = useState<number>(0);
   const forceUpdate = useCallback(() => setRenderTrigger((n) => n + 1), []);
 
   const kernel = kernelRef.current;
 
-  // Playback state
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const timerRef = useRef<any>(null);
 
-  // Selection & Modal States
   const [previewTick, setPreviewTick] = useState<number | null>(null);
   const [selectedPid, setSelectedPid] = useState<number | null>(null);
   const [selectedWhyBlock, setSelectedWhyBlock] = useState<GanttBlock | null>(null);
@@ -55,7 +45,6 @@ export default function App() {
   const [isAddOrderOpen, setIsAddOrderOpen] = useState<boolean>(false);
   const [isBenchmarkOpen, setIsBenchmarkOpen] = useState<boolean>(false);
 
-  // First-run onboarding guide check
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(() => {
     return !localStorage.getItem('tire_shop_kernel_guided_v1');
   });
@@ -65,7 +54,6 @@ export default function App() {
     setIsHelpOpen(false);
   };
 
-  // Sync settings when loaded
   useEffect(() => {
     kernel.scheduler.quantum = settings.quantum;
     kernel.scheduler.agingEnabled = settings.agingEnabled;
@@ -73,7 +61,6 @@ export default function App() {
     forceUpdate();
   }, [settings, forceUpdate, kernel]);
 
-  // Initial demo workload arrival seeding (5 friendly starter orders)
   useEffect(() => {
     const starterOrders = generateRushHourArrivals(1, 0, 100);
     starterOrders.slice(0, 4).forEach((order) => {
@@ -82,7 +69,6 @@ export default function App() {
     forceUpdate();
   }, [kernel, forceUpdate]);
 
-  // Simulation Tick Loop
   useEffect(() => {
     if (isRunning) {
       timerRef.current = setInterval(() => {
@@ -97,7 +83,6 @@ export default function App() {
     };
   }, [isRunning, speedMs, kernel, forceUpdate]);
 
-  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -126,7 +111,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isRunning, kernel, forceUpdate, previewTick]);
 
-  // Actions
   const handleTogglePlay = () => {
     if (!isRunning && previewTick !== null) {
       kernel.rewindToTick(previewTick);
@@ -148,7 +132,6 @@ export default function App() {
     setIsRunning(false);
     setPreviewTick(null);
     kernel.boot();
-    // Re-seed initial starter orders
     const starterOrders = generateRushHourArrivals(1, 0, 100);
     starterOrders.slice(0, 4).forEach((order) => {
       kernel.submitOrder(order);
@@ -213,18 +196,15 @@ export default function App() {
     setIsRunning(false);
     const { orders, locksSetup } = createDeadlockScenario();
 
-    // Register orders
     orders.forEach((o) => {
       kernel.processManager.registerProcess(o);
       kernel.processManager.transitionState(o.pid, 'WAITING', 'Waiting for contested mutex equipment');
     });
 
-    // Configure locks
     locksSetup.forEach((ls) => {
       const lock = kernel.lockManager.getLock(ls.lockId);
       if (lock) {
         lock.heldByPid = ls.heldByPid;
-        // The other order is waiting for this lock
         const waiterPid = orders.find((o) => o.pid !== ls.heldByPid)?.pid;
         if (waiterPid && !lock.waitingPids.includes(waiterPid)) {
           lock.waitingPids.push(waiterPid);
@@ -281,7 +261,6 @@ export default function App() {
     forceUpdate();
   };
 
-  // Active historical snapshot if scrubbing
   const activeSnapshot =
     previewTick !== null && kernel.snapshots[previewTick]
       ? kernel.snapshots[previewTick]
