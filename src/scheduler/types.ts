@@ -1,8 +1,3 @@
-/**
- * @file types.ts
- * @description CPU Scheduler Strategy interface and decision structures.
- */
-
 import { PCB } from '../models/pcb';
 
 export type AlgorithmType = 'FCFS' | 'SJF' | 'RR' | 'PRIORITY';
