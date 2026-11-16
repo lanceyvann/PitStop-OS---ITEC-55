@@ -1,10 +1,3 @@
-/**
- * @file TimeMachineSlider.tsx
- * @description Advanced Time Machine Controller and Snapshot Scrubber.
- * Enables live frame-by-frame inspection of any past tick T, visual scrubbing across
- * simulation history, quick navigation (first, previous, next, live), and deterministic rewind/replay.
- */
-
 import React from 'react';
 import { History, RotateCcw, FastForward, SkipBack, SkipForward, ArrowRight, Clock } from 'lucide-react';
 import { ViewMode } from '../../skin/dictionary';
