@@ -1,9 +1,3 @@
-/**
- * @file defaults.ts
- * @description Default vehicle profiles, models, tire catalog, and initial settings.
- * All defaults can be overridden via the Shop Settings drawer and persisted in localStorage.
- */
-
 import { VehicleProfile, VehicleModel } from '../models/vehicleProfile';
 import { TireStockItem } from '../models/tireStockItem';
 import { Lock } from '../models/lock';
@@ -45,7 +39,7 @@ export const DEFAULT_VEHICLE_PROFILES: VehicleProfile[] = [
     tires: 6,
     cpuRange: [12, 16],
     ioRange: [4, 8],
-    defaultPriority: 8, // High priority commercial/commuter vehicle
+    defaultPriority: 8, 
     iconKey: 'jeepney',
     description: 'Public utility route vehicle; long parts I/O, urgent priority.',
   },
@@ -111,14 +105,14 @@ export const DEFAULT_LOCKS: Record<string, Lock> = {
 };
 
 export const COLOR_PALETTE = [
-  '#CC5500', // Burnt Orange
-  '#0284C7', // Cerulean
-  '#059669', // Emerald
-  '#7C3AED', // Violet
-  '#D97706', // Amber
-  '#DB2777', // Magenta
-  '#475569', // Slate
-  '#0D9488', // Teal
-  '#B45309', // Russet
-  '#4338CA', // Indigo
+  '#CC5500', 
+  '#0284C7',
+  '#059669', 
+  '#7C3AED', 
+  '#D97706', 
+  '#DB2777', 
+  '#475569', 
+  '#0D9488', 
+  '#B45309',
+  '#4338CA', 
 ];
