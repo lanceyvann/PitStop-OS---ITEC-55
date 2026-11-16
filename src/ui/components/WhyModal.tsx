@@ -1,10 +1,3 @@
-/**
- * @file WhyModal.tsx
- * @description Plain-Language "Why?" Explainer Modal.
- * Deconstructs operating system scheduling decisions, mutual exclusion,
- * and state transitions into natural language for students.
- */
-
 import React from 'react';
 import { GanttBlock } from '../../models/snapshot';
 import { PCB } from '../../models/pcb';
