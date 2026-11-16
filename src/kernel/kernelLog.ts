@@ -1,9 +1,3 @@
-/**
- * @file kernelLog.ts
- * @description Kernel Logging System with level, PID, and syscall filtering.
- * Includes simulated OS boot sequence entries.
- */
-
 export type LogLevel = 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
 export type LogSource = 'KERNEL' | 'SCHEDULER' | 'PROCESS' | 'THREAD' | 'LOCK' | 'INVENTORY' | 'SYSCALL';
 
@@ -74,9 +68,6 @@ export class KernelLog {
     }
   }
 
-  /**
-   * Generates initial simulated OS boot sequence in log.
-   */
   public generateBootSequence(): void {
     this.clear();
     const bootSteps: Array<{ source: LogSource; msg: string; level: LogLevel }> = [
