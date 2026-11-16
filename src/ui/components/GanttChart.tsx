@@ -1,11 +1,3 @@
-/**
- * @file GanttChart.tsx
- * @description High-Fidelity OS Execution Gantt Chart.
- * Renders time axis ruler with unit ticks, bold labels every 5 units,
- * sticky process labels, CPU summary row, live "now" marker, context switch diamonds,
- * diagonal hatch bar styles, click-to-explain "Why?", and no-overlap runtime assertions.
- */
-
 import React, { useRef, useEffect, useState } from 'react';
 import { GanttBlock } from '../../models/snapshot';
 import { PCB } from '../../models/pcb';
