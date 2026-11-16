@@ -1,10 +1,3 @@
-/**
- * @file processManager.ts
- * @description OS Process Management Subsystem.
- * Enforces the 5-state lifecycle transition matrix, maintains Ready and Waiting queues,
- * tracks parent-child process hierarchies, and frees resources upon termination.
- */
-
 import { PCB } from '../models/pcb';
 import { ProcessState, isValidStateTransition } from '../models/stateTransitions';
 
@@ -17,9 +10,9 @@ export interface TransitionResult {
 
 export class ProcessManager {
   private pcbs: Map<number, PCB> = new Map();
-  private readyQueue: number[] = [];      // PIDs in Ready Queue (FIFO order unless re-sorted by scheduler)
-  private waitingQueue: number[] = [];    // PIDs in Waiting Queue (I/O, locks, stock)
-  private terminatedList: number[] = [];  // PIDs completed or aborted
+  private readyQueue: number[] = [];     
+  private waitingQueue: number[] = [];    
+  private terminatedList: number[] = [];  
   private runningPid: number | null = null;
 
   constructor() {
@@ -30,10 +23,7 @@ export class ProcessManager {
     this.runningPid = null;
   }
 
-  /**
-   * Registers a new PCB into the process table.
-   * New processes start in NEW state.
-   */
+
   public registerProcess(pcb: PCB): boolean {
     if (this.pcbs.has(pcb.pid)) return false;
     this.pcbs.set(pcb.pid, { ...pcb });
@@ -45,9 +35,6 @@ export class ProcessManager {
     return true;
   }
 
-  /**
-   * Transitions a process from its current state to a target state, enforcing the OS lifecycle rules.
-   */
   public transitionState(pid: number, targetState: ProcessState, reason?: string): TransitionResult {
     const pcb = this.pcbs.get(pid);
     if (!pcb) {
@@ -73,8 +60,6 @@ export class ProcessManager {
       };
     }
 
-    // Apply queue updates based on state changes:
-    // Remove from previous queue
     if (previousState === 'READY') {
       this.readyQueue = this.readyQueue.filter((p) => p !== pid);
     } else if (previousState === 'WAITING') {
@@ -83,7 +68,6 @@ export class ProcessManager {
       this.runningPid = null;
     }
 
-    // Add to target queue
     if (targetState === 'READY') {
       if (!this.readyQueue.includes(pid)) {
         this.readyQueue.push(pid);
@@ -154,9 +138,6 @@ export class ProcessManager {
     this.runningPid = pid;
   }
 
-  /**
-   * Spawns a child process under a parent order (e.g. fleet multi-vehicle order).
-   */
   public linkParentChild(parentPid: number, childPid: number): void {
     const parent = this.pcbs.get(parentPid);
     const child = this.pcbs.get(childPid);
@@ -168,18 +149,13 @@ export class ProcessManager {
     }
   }
 
-  /**
-   * Terminates a process, computing final turnaround, waiting, and response times.
-   */
   public terminateProcess(pid: number, currentClock: number): { success: boolean; pcb?: PCB } {
     const pcb = this.pcbs.get(pid);
     if (!pcb) return { success: false };
 
-    // Set completion metrics
     pcb.completionTime = currentClock;
     pcb.turnaroundTime = Math.max(0, currentClock - pcb.arrivalTime);
     
-    // Waiting time = Turnaround - total CPU burst (standard textbook definition)
     pcb.waitingTime = Math.max(0, pcb.turnaroundTime - pcb.totalCpuBurst);
 
     if (pcb.firstCpuTime !== null) {
@@ -192,9 +168,6 @@ export class ProcessManager {
     return { success: res.success, pcb };
   }
 
-  /**
-   * Restores state from snapshot.
-   */
   public restoreState(
     pcbs: Record<number, PCB>,
     readyPids: number[],
