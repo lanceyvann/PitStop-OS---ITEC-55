@@ -5,7 +5,7 @@
 
 ---
 
-## 🛠️ Prerequisites & Setup
+## Prerequisites & Setup
 
 ### Prerequisites
 - **Node.js**: v18.0.0 or higher (v20+ recommended)
