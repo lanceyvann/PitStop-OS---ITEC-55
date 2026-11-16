@@ -1,8 +1,3 @@
-/**
- * @file scheduler.ts
- * @description CPU Scheduler Coordinator managing strategy instances, aging progression, and quantum tracking.
- */
-
 import { AlgorithmType, ISchedulingStrategy, SchedulingContext, SchedulingDecision } from './types';
 import { FcfsStrategy } from './fcfs';
 import { SjfStrategy } from './sjf';
@@ -14,7 +9,7 @@ export class Scheduler {
   private currentAlgorithm: AlgorithmType = 'FCFS';
   public quantum: number = 3;
   public agingEnabled: boolean = true;
-  public agingInterval: number = 5; // Every 5 ticks in ready queue, priority increments
+  public agingInterval: number = 5; 
 
   constructor(defaultAlgo: AlgorithmType = 'FCFS', quantum: number = 3) {
     this.strategies = new Map();
