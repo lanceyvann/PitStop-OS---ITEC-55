@@ -1,10 +1,3 @@
-/**
- * @file ShopSettingsDrawer.tsx
- * @description Editable Shop Configuration & Profile Management Drawer.
- * Allows adding, editing, and deleting vehicle types, vehicle models, tire catalog items,
- * and order presets. Persists to localStorage with validation and 'Reset to Defaults'.
- */
-
 import React, { useState } from 'react';
 import { UserShopSettings, SettingsStorage, SavedOrderPreset } from '../../config/settingsStorage';
 import { VehicleProfile, VehicleModel } from '../../models/vehicleProfile';
@@ -29,7 +22,6 @@ export const ShopSettingsDrawer: React.FC<ShopSettingsDrawerProps> = ({
   const [localSettings, setLocalSettings] = useState<UserShopSettings>(settings);
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; isError?: boolean } | null>(null);
 
-  // New item modal or inline creation states
   const [editingType, setEditingType] = useState<Partial<VehicleProfile> | null>(null);
   const [editingModel, setEditingModel] = useState<Partial<VehicleModel> | null>(null);
   const [editingTire, setEditingTire] = useState<Partial<TireStockItem> | null>(null);
@@ -90,7 +82,6 @@ export const ShopSettingsDrawer: React.FC<ShopSettingsDrawerProps> = ({
     reader.readAsText(file);
   };
 
-  // --- Vehicle Types Actions ---
   const saveType = () => {
     if (!editingType) return;
     const validation = SettingsStorage.validateVehicleProfile(editingType);
@@ -130,7 +121,6 @@ export const ShopSettingsDrawer: React.FC<ShopSettingsDrawerProps> = ({
     showToast('Vehicle type deleted.');
   };
 
-  // --- Tire Catalog Actions ---
   const saveTire = () => {
     if (!editingTire) return;
     const validation = SettingsStorage.validateTireItem(editingTire);
