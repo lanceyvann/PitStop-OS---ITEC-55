@@ -1,11 +1,3 @@
-/**
- * @file BeginnerGuideModal.tsx
- * @description Comprehensive Course Companion & Simulator Guide for ITEC 55 Platform Technologies.
- * Covers: Shop-to-OS Scenario Mapping, Dual-Ring Security, 5-State Process Lifecycle,
- * Scheduling Algorithms & Mathematical Formulas, Threads & Mutexes, Deadlock Wait-For Graph (WFG),
- * Shared Inventory, and Interactive Student Missions.
- */
-
 import React, { useState } from 'react';
 import {
   BookOpen,
