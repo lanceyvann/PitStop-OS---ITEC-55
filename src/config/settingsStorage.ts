@@ -1,9 +1,3 @@
-/**
- * @file settingsStorage.ts
- * @description LocalStorage persistence and validation for user settings, vehicle profiles,
- * tire catalog, and saved customer order presets. Includes 'Reset to Defaults' option.
- */
-
 import { VehicleProfile, VehicleModel } from '../models/vehicleProfile';
 import { TireStockItem } from '../models/tireStockItem';
 import { DEFAULT_VEHICLE_PROFILES, DEFAULT_VEHICLE_MODELS, DEFAULT_TIRE_CATALOG } from './defaults';
@@ -91,9 +85,7 @@ function getStorage() {
 }
 
 export class SettingsStorage {
-  /**
-   * Loads saved settings from localStorage, falling back to defaults.
-   */
+
   public static load(): UserShopSettings {
     try {
       const storage = getStorage();
@@ -118,9 +110,6 @@ export class SettingsStorage {
     }
   }
 
-  /**
-   * Saves settings to localStorage.
-   */
   public static save(settings: UserShopSettings): boolean {
     try {
       getStorage().setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -131,9 +120,6 @@ export class SettingsStorage {
     }
   }
 
-  /**
-   * Resets all user settings back to initial factory defaults.
-   */
   public static resetToDefaults(): UserShopSettings {
     getStorage().removeItem(STORAGE_KEY);
     const defaults = JSON.parse(JSON.stringify(DEFAULT_USER_SETTINGS));
@@ -145,9 +131,6 @@ export class SettingsStorage {
     getStorage().clear();
   }
 
-  /**
-   * Validates vehicle profile inputs.
-   */
   public static validateVehicleProfile(profile: Partial<VehicleProfile>): { valid: boolean; error?: string } {
     if (!profile.name || profile.name.trim().length === 0) {
       return { valid: false, error: 'Profile name is required.' };
@@ -167,9 +150,6 @@ export class SettingsStorage {
     return { valid: true };
   }
 
-  /**
-   * Validates tire catalog item inputs.
-   */
   public static validateTireItem(item: Partial<TireStockItem>): { valid: boolean; error?: string } {
     if (!item.brand || item.brand.trim().length === 0) {
       return { valid: false, error: 'Brand is required.' };
