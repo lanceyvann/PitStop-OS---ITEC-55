@@ -29,6 +29,8 @@ export default function App() {
   const [speedMs, setSpeedMs] = useState<number>(settings.speedMs || 250);
 
   const kernelRef = useRef<Kernel>(new Kernel(1337));
+  const workloadRef = useRef<PCB[]>([]);
+  
   const [, setRenderTrigger] = useState<number>(0);
   const forceUpdate = useCallback(() => setRenderTrigger((n) => n + 1), []);
 
@@ -62,12 +64,18 @@ export default function App() {
   }, [settings, forceUpdate, kernel]);
 
   useEffect(() => {
-    const starterOrders = generateRushHourArrivals(1, 0, 100);
-    starterOrders.slice(0, 4).forEach((order) => {
+    const starterOrders = generateRushHourArrivals(1, 0, 100).slice(0, 4);
+
+    workloadRef.current = starterOrders.map((order) =>
+      structuredClone(order)
+    );
+
+    starterOrders.forEach((order) => {
       kernel.submitOrder(order);
     });
+
     forceUpdate();
-  }, [kernel, forceUpdate]);
+  }, []);
 
   useEffect(() => {
     if (isRunning) {
@@ -147,13 +155,11 @@ export default function App() {
 
     newKernel.inventoryManager.restoreState(settings.tireCatalog);
 
-    kernelRef.current = newKernel;
-
-    const starterOrders = generateRushHourArrivals(1, 0, 100);
-
-    starterOrders.slice(0, 4).forEach((order) => {
-      newKernel.submitOrder(order);
+    workloadRef.current.forEach((order) => {
+      newKernel.submitOrder(structuredClone(order));
     });
+
+    kernelRef.current = newKernel;
 
     forceUpdate();
   };
@@ -204,10 +210,21 @@ export default function App() {
 
   const handleTriggerRushHour = () => {
     const nextPid = Object.keys(kernel.processManager.getAllPcbs()).length + 1;
-    const rushArrivals = generateRushHourArrivals(nextPid, kernel.clock, Date.now());
+
+    const rushArrivals = generateRushHourArrivals(
+      nextPid,
+      kernel.clock,
+      Date.now()
+    );
+
+    workloadRef.current.push(
+    ...rushArrivals.map((order) => structuredClone(order))
+    );
+
     rushArrivals.forEach((order) => {
       kernel.submitOrder(order);
     });
+
     forceUpdate();
   };
 
@@ -276,7 +293,10 @@ export default function App() {
   };
 
   const handleNewOrderSubmit = (newPcb: PCB) => {
+    workloadRef.current.push(structuredClone(newPcb));
+
     kernel.submitOrder(newPcb);
+
     forceUpdate();
   };
 
