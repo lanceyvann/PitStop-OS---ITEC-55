@@ -54,14 +54,14 @@ export const WhyModal: React.FC<WhyModalProps> = ({
             <div className="flex justify-between font-bold text-xs text-[#1A1A1A]">
               <span>
                 {block.pid === 'CPU_IDLE'
-                  ? 'Fitting Bay Lift Idle'
-                  : `Order #${block.pid} (${pcb?.modelName || 'Customer'})`}
+                  ? 'CPU IDLE'
+                  : `P${block.pid} (${pcb?.modelName || 'Customer Order'})`}
               </span>
               <span className="font-mono text-[#CC5500]">{block.state}</span>
             </div>
-            <div className="text-[11px] text-[#1A1A1A]/70 flex gap-4 font-mono">
-              <span>Time: Tick {block.start} → {block.start + block.duration}</span>
-              <span>Duration: {block.duration} ticks</span>
+            <div className="text-[11px] text-[#1A1A1A]/70 flex gap-4 font-mono tabular-nums">
+              <span>Time: {block.start} ms → {block.start + block.duration} ms</span>
+              <span>Duration: {block.duration} ms</span>
             </div>
           </div>
 
@@ -73,7 +73,7 @@ export const WhyModal: React.FC<WhyModalProps> = ({
             <div className="p-3.5 bg-white rounded-lg border border-[#E4D9C3] leading-relaxed text-[#1A1A1A] text-xs">
               {block.whyReason || (
                 <span>
-                  Order #{block.pid} was executed according to {currentAlgo} scheduling criteria.
+                  Process P{block.pid} was executed according to {currentAlgo} scheduling criteria.
                   Its state was {block.state} based on CPU allocation and lock availability.
                 </span>
               )}
@@ -82,18 +82,26 @@ export const WhyModal: React.FC<WhyModalProps> = ({
 
           {/* Context Metrics */}
           {pcb && (
-            <div className="grid grid-cols-3 gap-2 text-center font-mono text-[11px]">
+            <div className="grid grid-cols-5 gap-2 text-center font-mono text-[11px] tabular-nums">
               <div className="p-2 bg-[#F6EFE0] rounded border border-[#E4D9C3]">
-                <span className="text-[#1A1A1A]/60 block text-[10px]">Effective Pri:</span>
-                <strong className="text-[#CC5500]">{pcb.priority + (pcb.agingBoost || 0)}</strong>
+                <span className="text-[#1A1A1A]/60 block text-[10px]">AT</span>
+                <strong>{pcb.arrivalTime} ms</strong>
               </div>
               <div className="p-2 bg-[#F6EFE0] rounded border border-[#E4D9C3]">
-                <span className="text-[#1A1A1A]/60 block text-[10px]">Arrival:</span>
-                <strong>Tick #{pcb.arrivalTime}</strong>
+                <span className="text-[#1A1A1A]/60 block text-[10px]">BT</span>
+                <strong>{pcb.totalCpuBurst} ms</strong>
               </div>
               <div className="p-2 bg-[#F6EFE0] rounded border border-[#E4D9C3]">
-                <span className="text-[#1A1A1A]/60 block text-[10px]">Remaining CPU:</span>
-                <strong>{pcb.remainingCpuTime}t</strong>
+                <span className="text-[#1A1A1A]/60 block text-[10px]">CT</span>
+                <strong>{pcb.completionTime !== null ? `${pcb.completionTime} ms` : '—'}</strong>
+              </div>
+              <div className="p-2 bg-[#F6EFE0] rounded border border-[#E4D9C3]">
+                <span className="text-[#1A1A1A]/60 block text-[10px]">TAT</span>
+                <strong>{pcb.completionTime !== null ? `${pcb.turnaroundTime} ms` : '—'}</strong>
+              </div>
+              <div className="p-2 bg-[#F6EFE0] rounded border border-[#E4D9C3]">
+                <span className="text-[#1A1A1A]/60 block text-[10px]">WT</span>
+                <strong>{pcb.completionTime !== null ? `${pcb.waitingTime} ms` : `${pcb.waitingTime} ms`}</strong>
               </div>
             </div>
           )}
