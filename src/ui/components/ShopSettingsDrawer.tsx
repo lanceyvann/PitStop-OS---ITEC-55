@@ -49,6 +49,39 @@ export const ShopSettingsDrawer: React.FC<ShopSettingsDrawerProps> = ({
     }
   };
 
+    const handleExportJson = () => {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(localSettings, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', 'tire_shop_kernel_config.json');
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    showToast('Configuration exported as JSON.');
+  };
+
+  const handleImportJson = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const imported = JSON.parse(event.target?.result as string);
+        if (imported.vehicleProfiles && imported.tireCatalog) {
+          setLocalSettings(imported);
+          SettingsStorage.save(imported);
+          onSaveSettings(imported);
+          showToast('Configuration imported successfully!');
+        } else {
+          showToast('Invalid configuration file structure.', true);
+        }
+      } catch (err) {
+        showToast('Failed to parse JSON file.', true);
+      }
+    };
+    reader.readAsText(file);
+  };
+  
   const saveType = () => {
     if (!editingType) return;
     const validation = SettingsStorage.validateVehicleProfile(editingType);
