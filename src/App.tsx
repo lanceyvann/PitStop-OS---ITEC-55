@@ -131,11 +131,30 @@ export default function App() {
   const handleReset = () => {
     setIsRunning(false);
     setPreviewTick(null);
-    kernel.boot();
+    setSelectedPid(null);
+    setSelectedWhyBlock(null);
+    setIsWhyOpen(false);
+
+    const previousKernel = kernelRef.current;
+    const newKernel = new Kernel(1337);
+
+    newKernel.scheduler.setAlgorithm(
+      previousKernel.scheduler.getAlgorithm()
+    );
+
+    newKernel.scheduler.quantum = settings.quantum;
+    newKernel.scheduler.agingEnabled = settings.agingEnabled;
+
+    newKernel.inventoryManager.restoreState(settings.tireCatalog);
+
+    kernelRef.current = newKernel;
+
     const starterOrders = generateRushHourArrivals(1, 0, 100);
+
     starterOrders.slice(0, 4).forEach((order) => {
-      kernel.submitOrder(order);
+      newKernel.submitOrder(order);
     });
+
     forceUpdate();
   };
 
