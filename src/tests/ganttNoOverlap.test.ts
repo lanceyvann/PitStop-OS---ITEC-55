@@ -47,4 +47,36 @@ describe('Gantt Chart Non-Overlap Invariant', () => {
       }
     }
   });
+
+  it('builds contiguous single-core CPU slices with explicit idle gaps and preemptive slices', async () => {
+    const { buildCpuSlicesFromKernelBlocks, SAMPLE_CPU_SLICES } = await import('../ui/components/GanttChart');
+
+    expect(SAMPLE_CPU_SLICES[0].isIdle).toBe(true);
+    expect(SAMPLE_CPU_SLICES[0].startTime).toBe(0);
+    expect(SAMPLE_CPU_SLICES[0].endTime).toBe(2);
+
+    const p1Slices = SAMPLE_CPU_SLICES.filter((s) => s.processId === 'P1');
+    expect(p1Slices.length).toBe(2);
+    expect(p1Slices[0].endTime).toBeLessThan(p1Slices[1].startTime);
+
+    for (let i = 0; i < SAMPLE_CPU_SLICES.length - 1; i++) {
+      expect(SAMPLE_CPU_SLICES[i].endTime).toBe(SAMPLE_CPU_SLICES[i + 1].startTime);
+    }
+
+    const mockBlocks: GanttBlock[] = [
+      { id: 'w1', pid: 1, start: 0, duration: 2, state: 'WAITING', label: 'IO wait' },
+      { id: 'cs1', pid: 'CONTEXT_SWITCH', start: 2, duration: 1, state: 'SWITCH', label: 'CS' },
+      { id: 'r1', pid: 1, start: 2, duration: 3, state: 'RUNNING', label: 'Mount' },
+      { id: 'r2', pid: 2, start: 5, duration: 2, state: 'RUNNING', label: 'Balance' },
+      { id: 'r3', pid: 1, start: 7, duration: 2, state: 'RUNNING', label: 'Finish' },
+    ];
+
+    const slices = buildCpuSlicesFromKernelBlocks(mockBlocks);
+    expect(slices.map((s) => [s.processId, s.startTime, s.endTime, s.isIdle])).toEqual([
+      ['IDLE', 0, 2, true],
+      ['P1', 2, 5, false],
+      ['P2', 5, 7, false],
+      ['P1', 7, 9, false],
+    ]);
+  });
 });
